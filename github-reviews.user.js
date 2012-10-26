@@ -130,7 +130,7 @@ function forEachElement(elems, cb) {
 function addCSS() {
   var style = document.createElement('style');
   style.innerText =
-    '.review-tag { border-radius: 3px; padding: 2px; margin-right: 1em; }' +
+    '.review-tag { border-radius: 3px; padding: 2px; float: right }' +
     tags.map(function(tag) {
       return ('.CLASS { background-color: BG; color: FG }'
         .replace(/CLASS/, tag.name)
