@@ -100,7 +100,23 @@ function getPullRequest(user, repo, id, cb) {
 }
 
 function getPullRequestComments(user, repo, id, cb) {
-  var url = "https://api.github.com/repos/"+user+"/"+repo+"/issues/"+id +
+  getComments(user, repo, id, "issues", function(issueComments) {
+    getComments(user, repo, id, "pulls", function(pullComments) {
+      var comments = issueComments.concat(pullComments);
+      comments.sort(function(a, b) {
+        var ak = a.created_at;
+        var bk = b.created_at;
+        if (ak < bk) return -1;
+        if (ak > bk) return 1;
+        return 0;
+      });
+      cb(comments);
+    });
+  });
+}
+
+function getComments(user, repo, id, type, cb) {
+  var url = "https://api.github.com/repos/"+user+"/"+repo+"/"+type+"/"+id +
             "/comments?access_token=" + accessToken;
   getJSON(url, cb);
 }
