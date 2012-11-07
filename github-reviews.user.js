@@ -4,7 +4,15 @@
 // @match https://github.com/*
 // ==/UserScript==
 
+
+// -- Config section -----------------------------------------------------------
+
 var accessToken = 'your access token here';
+
+var getExtraLinks = function() { return []; };
+
+// -- End config section -------------------------------------------------------
+
 
 var tags = table('name', 'background', 'foreground', 'pattern');
 
@@ -44,8 +52,10 @@ function update(pulls) {
     var user = bits[1];
     var repo = bits[2];
     var id = bits[4];
+    var name = a.innerText;
+    var extraLinks = getExtraLinks(user, repo, id, name);
     getTag(user, repo, id, function(tag) {
-      tagListItem(item, tag);
+      tagListItem(item, tag, extraLinks);
     });
   });
 }
@@ -121,13 +131,35 @@ function getComments(user, repo, id, type, cb) {
   getJSON(url, cb);
 }
 
-function tagListItem(elem, tag) {
+function tagListItem(elem, tag, extraLinks) {
   var h3 = elem.getElementsByTagName('h3')[0];
   var a = h3.getElementsByTagName('a')[0];
   var tagElem = document.createElement('span');
   tagElem.setAttribute('class', 'review-tag ' + tag);
   tagElem.innerText = tag.replace(/-/g, ' ');
   h3.insertBefore(tagElem, a);
+
+  if (extraLinks.length) {
+    var linksElem = document.createElement('div');
+    linksElem.className = 'extra-links';
+    for (var i in extraLinks) {
+
+      if (i !== '0') {
+        var spaceElem = document.createElement('span');
+        spaceElem.innerHTML = ' &bull; ';
+        linksElem.appendChild(spaceElem);
+      }
+
+      var link = extraLinks[i];
+      var text = link[0];
+      var url = link[1];
+      var linkElem = document.createElement('a');
+      linkElem.innerText = text;
+      linkElem.setAttribute('href', url);
+      linksElem.appendChild(linkElem);
+    };
+    elem.appendChild(linksElem);
+  }
 }
 
 function addClass(elem, className) {
@@ -147,6 +179,8 @@ function addCSS() {
   var style = document.createElement('style');
   style.innerText =
     '.review-tag { border-radius: 3px; padding: 2px; float: right }' +
+    '.extra-links { position: absolute; right: 10px; top: 35px; }' +
+    '.extra-links { font-size: 11px; }' +
     tags.map(function(tag) {
       return ('.CLASS { background-color: BG; color: FG }'
         .replace(/CLASS/, tag.name)
