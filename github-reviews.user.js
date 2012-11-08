@@ -45,6 +45,8 @@ function update(pulls) {
   addClass(pulls, 'code-reviews-loaded');
   var items = pulls.getElementsByClassName('list-browser-item');
   forEachElement(items, function(item) {
+    if (item.className.indexOf('closed') != -1)
+      return;
     var h3 = item.getElementsByTagName('h3')[0];
     var a = h3.getElementsByTagName('a')[0];
     var href = a.getAttribute('href');
@@ -135,29 +137,21 @@ function tagListItem(elem, tag, extraLinks) {
   var h3 = elem.getElementsByTagName('h3')[0];
   var a = h3.getElementsByTagName('a')[0];
   var tagElem = document.createElement('span');
-  tagElem.setAttribute('class', 'review-tag ' + tag);
+  tagElem.setAttribute('class', 'state-indicator ' + tag);
   tagElem.innerText = tag.replace(/-/g, ' ');
   h3.insertBefore(tagElem, a);
 
   if (extraLinks.length) {
     var linksElem = document.createElement('div');
     linksElem.className = 'extra-links';
-    for (var i in extraLinks) {
-
-      if (i !== '0') {
-        var spaceElem = document.createElement('span');
-        spaceElem.innerHTML = ' &bull; ';
-        linksElem.appendChild(spaceElem);
-      }
-
-      var link = extraLinks[i];
+    extraLinks.forEach(function(link) {
       var text = link[0];
       var url = link[1];
       var linkElem = document.createElement('a');
       linkElem.innerText = text;
       linkElem.setAttribute('href', url);
       linksElem.appendChild(linkElem);
-    };
+    });
     elem.appendChild(linksElem);
   }
 }
@@ -178,7 +172,6 @@ function forEachElement(elems, cb) {
 function addCSS() {
   var style = document.createElement('style');
   style.innerText =
-    '.review-tag { border-radius: 3px; padding: 2px; float: right }' +
     '.extra-links { position: absolute; right: 10px; top: 35px; }' +
     '.extra-links { font-size: 11px; }' +
     tags.map(function(tag) {
