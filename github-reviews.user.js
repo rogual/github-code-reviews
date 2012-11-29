@@ -7,12 +7,15 @@
 
 // -- Config section -----------------------------------------------------------
 
-var accessToken = 'your access token here';
-
 var getExtraLinks = function() { return []; };
 
 // -- End config section -------------------------------------------------------
 
+var accessToken = localStorage.getItem('accessToken');
+if (!accessToken) {
+    accessToken = prompt("Please enter your GitHub access token.");
+    localStorage.setItem('accessToken', accessToken);
+}
 
 var tags = table('name', 'background', 'foreground', 'pattern');
 
@@ -20,8 +23,12 @@ tags.add('on-hold',    'gray',  'white', /on hold|hold off|#onhold|#holdit/);
 tags.add('needs-work', '#921',  'white', /please|#needswork/);
 tags.add('ship-it',    'green', 'white', /ship it|#shipit/);
 
-tags.add('needs-review', '#f80', 'white',
-  /(needs|ready for|awaiting|waiting for) (re?)review|addressed|#needsreview/);
+tags.add('needs-review', '#f80', 'white', new RegExp([
+    '(needs|ready for|awaiting|waiting for) (re?)review',
+    'can one of the admins verify this patch',
+    'addressed',
+    '#needsreview'
+].join('|')));
 
 addCSS();
 setInterval(maybeUpdate, 1000);
