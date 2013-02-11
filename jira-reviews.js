@@ -69,6 +69,7 @@ function updateWithPulls(pulls, cb) {
         var repo = pull.base.repo;
         getTag(repo.owner.login, repo.name, pull.number, function(tag) {
           addClass(card, 'code-review');
+          addClass(card, tag);
           var elem = document.createElement('div');
           addClass(elem, 'code-review-tag');
           addClass(elem, tag);
@@ -103,10 +104,13 @@ function addCSS() {
     '.code-review-tag { position: absolute; left: 0; top: -1px; width: 100%; }' +
     '.code-review-tag a { color: white !important; margin-left: 16px; }' +
     tags.map(function(tag) {
-      return ('.code-review-tag.CLASS { background-color: BG; color: FG }'
-        .replace(/CLASS/, tag.name)
+      return (
+        ('.code-review-tag.CLASS { background-color: BG; color: FG }' +
+         '.ghx-issue.CLASS { background-color: LIGHT }')
+        .replace(/CLASS/g, tag.name)
         .replace(/BG/, tag.background)
-        .replace(/FG/, tag.foreground));
+        .replace(/FG/, tag.foreground)
+        .replace(/LIGHT/, tag.light));
     }).join('');
   document.head.appendChild(style);
 }

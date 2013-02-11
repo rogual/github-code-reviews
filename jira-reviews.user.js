@@ -134,13 +134,13 @@ if (!accessToken) {
     localStorage.setItem('accessToken', accessToken);
 }
 
-var tags = table('name', 'background', 'foreground', 'pattern');
+var tags = table('name', 'background', 'light', 'foreground', 'pattern');
 
-tags.add('on-hold',    'gray',  'white', /on hold|hold off|#onhold|#holdit/);
-tags.add('needs-work', '#921',  'white', /please|#needswork/);
-tags.add('ship-it',    'green', 'white', /ship it|#shipit/);
+tags.add('on-hold',    'gray',  'white', 'white', /on hold|hold off|#onhold|#holdit/);
+tags.add('needs-work', '#921',  '#fee', 'white', /please|#needswork/);
+tags.add('ship-it',    'green', '#efe', 'white', /ship it|#shipit/);
 
-tags.add('needs-review', '#f80', 'white', new RegExp([
+tags.add('needs-review', '#f80', '#ffe', 'white', new RegExp([
     '(needs|ready for|awaiting|waiting for) (re?)review',
     'can one of the admins verify this patch',
     'addressed',
@@ -217,6 +217,7 @@ function updateWithPulls(pulls, cb) {
         var repo = pull.base.repo;
         getTag(repo.owner.login, repo.name, pull.number, function(tag) {
           addClass(card, 'code-review');
+          addClass(card, tag);
           var elem = document.createElement('div');
           addClass(elem, 'code-review-tag');
           addClass(elem, tag);
@@ -251,10 +252,13 @@ function addCSS() {
     '.code-review-tag { position: absolute; left: 0; top: -1px; width: 100%; }' +
     '.code-review-tag a { color: white !important; margin-left: 16px; }' +
     tags.map(function(tag) {
-      return ('.code-review-tag.CLASS { background-color: BG; color: FG }'
-        .replace(/CLASS/, tag.name)
+      return (
+        ('.code-review-tag.CLASS { background-color: BG; color: FG }' +
+         '.ghx-issue.CLASS { background-color: LIGHT }')
+        .replace(/CLASS/g, tag.name)
         .replace(/BG/, tag.background)
-        .replace(/FG/, tag.foreground));
+        .replace(/FG/, tag.foreground)
+        .replace(/LIGHT/, tag.light));
     }).join('');
   document.head.appendChild(style);
 }

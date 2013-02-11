@@ -134,13 +134,13 @@ if (!accessToken) {
     localStorage.setItem('accessToken', accessToken);
 }
 
-var tags = table('name', 'background', 'foreground', 'pattern');
+var tags = table('name', 'background', 'light', 'foreground', 'pattern');
 
-tags.add('on-hold',    'gray',  'white', /on hold|hold off|#onhold|#holdit/);
-tags.add('needs-work', '#921',  'white', /please|#needswork/);
-tags.add('ship-it',    'green', 'white', /ship it|#shipit/);
+tags.add('on-hold',    'gray',  'white', 'white', /on hold|hold off|#onhold|#holdit/);
+tags.add('needs-work', '#921',  '#fee', 'white', /please|#needswork/);
+tags.add('ship-it',    'green', '#efe', 'white', /ship it|#shipit/);
 
-tags.add('needs-review', '#f80', 'white', new RegExp([
+tags.add('needs-review', '#f80', '#ffe', 'white', new RegExp([
     '(needs|ready for|awaiting|waiting for) (re?)review',
     'can one of the admins verify this patch',
     'addressed',
