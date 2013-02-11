@@ -185,7 +185,7 @@ function update(pulls) {
     var user = bits[1];
     var repo = bits[2];
     var id = bits[4];
-    var name = a.innerText;
+    var name = a.textContent;
     var extraLinks = getExtraLinks(user, repo, id, name);
     getTag(user, repo, id, function(tag) {
       tagListItem(item, tag, extraLinks);
@@ -199,7 +199,7 @@ function tagListItem(elem, tag, extraLinks) {
   var a = h3.getElementsByTagName('a')[0];
   var tagElem = document.createElement('span');
   tagElem.setAttribute('class', 'state-indicator ' + tag);
-  tagElem.innerText = tag.replace(/-/g, ' ');
+  tagElem.textContent = tag.replace(/-/g, ' ');
   h3.insertBefore(tagElem, a);
 
   if (extraLinks.length) {
@@ -209,7 +209,7 @@ function tagListItem(elem, tag, extraLinks) {
       var text = link[0];
       var url = link[1];
       var linkElem = document.createElement('a');
-      linkElem.innerText = text;
+      linkElem.textContent = text;
       linkElem.setAttribute('href', url);
       linksElem.appendChild(linkElem);
     });
@@ -219,7 +219,7 @@ function tagListItem(elem, tag, extraLinks) {
 
 function addCSS() {
   var style = document.createElement('style');
-  style.innerText =
+  style.textContent =
     '.extra-links { position: absolute; right: 10px; top: 35px; }' +
     '.extra-links { font-size: 11px; }' +
     tags.map(function(tag) {

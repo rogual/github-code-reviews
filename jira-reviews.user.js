@@ -209,7 +209,7 @@ function updateWithPulls(pulls, cb) {
     var links = card.getElementsByClassName('js-detailview');
     if (links.length) {
       var link = links[0];
-      var issueName = link.innerText;
+      var issueName = link.textContent;
       var pull = findPull(pulls, issueName);
       addClass(card, 'code-reviews-loaded');
 
@@ -222,7 +222,7 @@ function updateWithPulls(pulls, cb) {
           addClass(elem, tag);
           var link = document.createElement('a');
           link.setAttribute('href', pull.html_url);
-          link.innerText = tag.replace(/-/g, ' ');
+          link.textContent = tag.replace(/-/g, ' ');
           elem.appendChild(link);
           card.insertBefore(elem, card.firstChild);
 
@@ -241,7 +241,7 @@ function updateWithPulls(pulls, cb) {
 
 function addCSS() {
   var style = document.createElement('style');
-  style.innerText =
+  style.textContent =
     '.ghx-issue.code-review .ghx-type { top: 20px; }' +
     '.ghx-issue.code-review .ghx-flags { top: 41px; }' +
     '.ghx-issue.code-review .ghx-key { margin-top: 16px; }' +
