@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name GitHub Code Reviews
+// @name JIRA Code Reviews
 // @author Robin Allen
-// @match https://github.com/*
+// @match https://*.atlassian.net/secure/RapidBoard.jspa?*
 // @version 1.1
 // ==/UserScript==
 
@@ -147,83 +147,111 @@ tags.add('needs-review', '#f80', 'white', new RegExp([
     '#needsreview'
 ].join('|')));
 
-// -- Config section -----------------------------------------------------------
-
-var getExtraLinks = function() { return []; };
-
-// -- End config section -------------------------------------------------------
-
+var orgName = localStorage.getItem('organization');
+if (!orgName) {
+    orgName = prompt("Please enter your GitHub organization name");
+    localStorage.setItem('organization', orgName);
+}
 
 addCSS();
-setInterval(maybeUpdate, 1000);
 maybeUpdate();
 
 function maybeUpdate() {
-  var pulls = getPulls();
-  if (pulls && !hasClass(pulls, 'code-reviews-loaded')) {
-    update(pulls);
+  if (needsUpdate()) {
+    update(wait);
+  }
+  else {
+    wait();
   }
 }
 
-function getPulls() {
-  var pullLists = document.getElementsByClassName('pulls-list');
-  if (pullLists.length) {
-    return pullLists[0];
-  }
+function wait() {
+  setTimeout(maybeUpdate, 1000);
 }
 
-function update(pulls) {
-  addClass(pulls, 'code-reviews-loaded');
-  var items = pulls.getElementsByClassName('list-browser-item');
-  forEachElement(items, function(item) {
-    if (item.className.indexOf('closed') != -1)
-      return;
-    var h3 = item.getElementsByTagName('h3')[0];
-    var a = h3.getElementsByTagName('a')[0];
-    var href = a.getAttribute('href');
-    var bits = href.split('/');
-    var user = bits[1];
-    var repo = bits[2];
-    var id = bits[4];
-    var name = a.innerText;
-    var extraLinks = getExtraLinks(user, repo, id, name);
-    getTag(user, repo, id, function(tag) {
-      tagListItem(item, tag, extraLinks);
-    });
+function needsUpdate() {
+  var cards = document.getElementsByClassName('ghx-issue');
+  for (var i=0; i<cards.length; i++) {
+    var card = cards[i];
+    if (!hasClass(card, 'code-reviews-loaded'))
+      return true;
+  }
+  return false;
+}
+
+function update(cb) {
+  getOrgPullRequests(orgName, function(pulls) {
+    updateWithPulls(pulls, cb);
   });
 }
 
+function findPull(pulls, issueName) {
+  for (var i=0; i<pulls.length; i++) {
+    var pull = pulls[i];
+    if (pull.title.toLowerCase().indexOf(issueName.toLowerCase()) != -1) {
+      return pull;
+    }
+  }
+}
 
-function tagListItem(elem, tag, extraLinks) {
-  var h3 = elem.getElementsByTagName('h3')[0];
-  var a = h3.getElementsByTagName('a')[0];
-  var tagElem = document.createElement('span');
-  tagElem.setAttribute('class', 'state-indicator ' + tag);
-  tagElem.innerText = tag.replace(/-/g, ' ');
-  h3.insertBefore(tagElem, a);
+function updateWithPulls(pulls, cb) {
+  var cards = document.getElementsByClassName('ghx-issue');
 
-  if (extraLinks.length) {
-    var linksElem = document.createElement('div');
-    linksElem.className = 'extra-links';
-    extraLinks.forEach(function(link) {
-      var text = link[0];
-      var url = link[1];
-      var linkElem = document.createElement('a');
-      linkElem.innerText = text;
-      linkElem.setAttribute('href', url);
-      linksElem.appendChild(linkElem);
-    });
-    elem.appendChild(linksElem);
+  iter(0);
+
+  function iter(i) {
+
+    if (i == cards.length)
+      return cb();
+
+    var card = cards[i];
+
+    var links = card.getElementsByClassName('js-detailview');
+    if (links.length) {
+      var link = links[0];
+      var issueName = link.innerText;
+      var pull = findPull(pulls, issueName);
+      addClass(card, 'code-reviews-loaded');
+
+      if (pull) {
+        var repo = pull.base.repo;
+        getTag(repo.owner.login, repo.name, pull.number, function(tag) {
+          addClass(card, 'code-review');
+          var elem = document.createElement('div');
+          addClass(elem, 'code-review-tag');
+          addClass(elem, tag);
+          var link = document.createElement('a');
+          link.setAttribute('href', pull.html_url);
+          link.innerText = tag.replace(/-/g, ' ');
+          elem.appendChild(link);
+          card.insertBefore(elem, card.firstChild);
+
+          iter(i + 1);
+        });
+      }
+      else {
+        iter(i + 1);
+      }
+    }
+    else {
+      iter(i + 1);
+    }
   }
 }
 
 function addCSS() {
   var style = document.createElement('style');
   style.innerText =
-    '.extra-links { position: absolute; right: 10px; top: 35px; }' +
-    '.extra-links { font-size: 11px; }' +
+    '.ghx-issue.code-review .ghx-type { top: 20px; }' +
+    '.ghx-issue.code-review .ghx-flags { top: 41px; }' +
+    '.ghx-issue.code-review .ghx-key { margin-top: 16px; }' +
+    '.ghx-issue.code-review { height: 86px; }' +
+    '.ghx-issue.code-review .ghx-grabber{ height: 85px; }' +
+    '.ghx-issue.code-review .ghx-grabber::after { height: 81px; }' +
+    '.code-review-tag { position: absolute; left: 0; top: -1px; width: 100%; }' +
+    '.code-review-tag a { color: white !important; margin-left: 16px; }' +
     tags.map(function(tag) {
-      return ('.CLASS { background-color: BG; color: FG }'
+      return ('.code-review-tag.CLASS { background-color: BG; color: FG }'
         .replace(/CLASS/, tag.name)
         .replace(/BG/, tag.background)
         .replace(/FG/, tag.foreground));
