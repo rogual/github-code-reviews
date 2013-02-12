@@ -25,7 +25,7 @@ function needsUpdate() {
   var cards = document.getElementsByClassName('ghx-issue');
   for (var i=0; i<cards.length; i++) {
     var card = cards[i];
-    if (!hasClass(card, 'code-reviews-loaded'))
+    if (!card.getElementsByClassName('code-review-tag').length)
       return true;
   }
   return false;
@@ -57,36 +57,31 @@ function updateWithPulls(pulls, cb) {
       return cb();
 
     var card = cards[i];
+    var issueName = card.getAttribute('data-issue-key');
+    var pull = findPull(pulls, issueName);
 
-    var links = card.getElementsByClassName('js-detailview');
-    if (links.length) {
-      var link = links[0];
-      var issueName = link.textContent;
-      var pull = findPull(pulls, issueName);
-      addClass(card, 'code-reviews-loaded');
+    var elem = document.createElement('div');
+    addClass(elem, 'code-review-tag');
 
-      if (pull) {
-        var repo = pull.base.repo;
-        getTag(repo.owner.login, repo.name, pull.number, function(tag) {
-          addClass(card, 'code-review');
-          addClass(card, tag);
-          var elem = document.createElement('div');
-          addClass(elem, 'code-review-tag');
-          addClass(elem, tag);
-          var link = document.createElement('a');
-          link.setAttribute('href', pull.html_url);
-          link.textContent = tag.replace(/-/g, ' ');
-          elem.appendChild(link);
-          card.insertBefore(elem, card.firstChild);
+    if (pull) {
+      var repo = pull.base.repo;
+      getTag(repo.owner.login, repo.name, pull.number, function(tag) {
+        addClass(card, 'code-review');
+        addClass(card, tag);
+        addClass(elem, tag);
+        var link = document.createElement('a');
+        link.setAttribute('href', pull.html_url);
+        link.textContent = tag.replace(/-/g, ' ');
+        elem.appendChild(link);
+        card.insertBefore(elem, card.firstChild);
 
-          iter(i + 1);
-        });
-      }
-      else {
         iter(i + 1);
-      }
+      });
     }
     else {
+      elem.style.display = 'none';
+      card.insertBefore(elem, card.firstChild);
+
       iter(i + 1);
     }
   }
