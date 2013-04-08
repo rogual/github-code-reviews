@@ -174,12 +174,12 @@ function getPulls() {
 
 function update(pulls) {
   addClass(pulls, 'code-reviews-loaded');
-  var items = pulls.getElementsByClassName('list-browser-item');
+  var items = pulls.getElementsByClassName('js-list-browser-item');
   forEachElement(items, function(item) {
     if (item.className.indexOf('closed') != -1)
       return;
-    var h3 = item.getElementsByTagName('h3')[0];
-    var a = h3.getElementsByTagName('a')[0];
+    var h4 = item.getElementsByTagName('h4')[0];
+    var a = h4.getElementsByTagName('a')[0];
     var href = a.getAttribute('href');
     var bits = href.split('/');
     var user = bits[1];
@@ -195,12 +195,13 @@ function update(pulls) {
 
 
 function tagListItem(elem, tag, extraLinks) {
-  var h3 = elem.getElementsByTagName('h3')[0];
-  var a = h3.getElementsByTagName('a')[0];
-  var tagElem = document.createElement('span');
+  var ul = elem.getElementsByTagName('ul')[0];
+  var firstItem = ul.getElementsByTagName('li')[0];
+
+  var tagElem = document.createElement('li');
   tagElem.setAttribute('class', 'state-indicator ' + tag);
   tagElem.textContent = tag.replace(/-/g, ' ');
-  h3.insertBefore(tagElem, a);
+  ul.insertBefore(tagElem, firstItem);
 
   if (extraLinks.length) {
     var linksElem = document.createElement('div');
@@ -222,6 +223,7 @@ function addCSS() {
   style.textContent =
     '.extra-links { position: absolute; right: 10px; top: 35px; }' +
     '.extra-links { font-size: 11px; }' +
+    '.state-indicator { font-size: 11px; padding: 0px 5px 0px 5px; font-weight: normal; }' +
     tags.map(function(tag) {
       return ('.CLASS { background-color: BG; color: FG }'
         .replace(/CLASS/, tag.name)
