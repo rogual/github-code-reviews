@@ -2,7 +2,7 @@
 // @name GitHub Code Reviews
 // @author Robin Allen
 // @match https://github.com/*
-// @version 1.1
+// @version 1.2
 // ==/UserScript==
 
 function getTag(user, repo, id, cb) {
@@ -138,7 +138,7 @@ var tags = table('name', 'background', 'light', 'foreground', 'pattern');
 
 tags.add('on-hold',    'gray',  'white', 'white', /on hold|hold off|#onhold|#holdit/);
 tags.add('needs-work', '#921',  '#fee', 'white', /please|#needswork/);
-tags.add('ship-it',    'green', '#efe', 'white', /ship it|#shipit/);
+tags.add('ship-it',    'green', '#efe', 'white', /ship it|#shipit|good to go/);
 
 tags.add('needs-review', '#f80', '#ffe', 'white', new RegExp([
     '(needs|ready for|awaiting|waiting for) (re?)review',
@@ -166,7 +166,7 @@ function maybeUpdate() {
 }
 
 function getPulls() {
-  var pullLists = document.getElementsByClassName('pulls-list');
+  var pullLists = document.getElementsByClassName('table-list-issues');
   if (pullLists.length) {
     return pullLists[0];
   }
@@ -174,12 +174,12 @@ function getPulls() {
 
 function update(pulls) {
   addClass(pulls, 'code-reviews-loaded');
-  var items = pulls.getElementsByClassName('js-list-browser-item');
+  var items = pulls.getElementsByClassName('table-list-item');
   forEachElement(items, function(item) {
     if (item.className.indexOf('closed') != -1)
       return;
-    var h4 = item.getElementsByTagName('h4')[0];
-    var a = h4.getElementsByTagName('a')[0];
+
+    var a = item.getElementsByClassName('issue-title-link')[0];
     var href = a.getAttribute('href');
     var bits = href.split('/');
     var user = bits[1];
@@ -195,13 +195,14 @@ function update(pulls) {
 
 
 function tagListItem(elem, tag, extraLinks) {
-  var ul = elem.getElementsByTagName('ul')[0];
-  var firstItem = ul.getElementsByTagName('li')[0];
+  console.log(elem, tag);
 
-  var tagElem = document.createElement('li');
+  var title = elem.getElementsByClassName('issue-title')[0];
+
+  var tagElem = document.createElement('span');
   tagElem.setAttribute('class', 'state-indicator ' + tag);
   tagElem.textContent = tag.replace(/-/g, ' ');
-  ul.insertBefore(tagElem, firstItem);
+  title.appendChild(tagElem);
 
   if (extraLinks.length) {
     var linksElem = document.createElement('div');
@@ -223,7 +224,8 @@ function addCSS() {
   style.textContent =
     '.extra-links { position: absolute; right: 10px; top: 35px; }' +
     '.extra-links { font-size: 11px; }' +
-    '.state-indicator { font-size: 11px; padding: 0px 5px 0px 5px; font-weight: normal; }' +
+    '.state-indicator { font-size: 12px; padding: 0px 6px 0px 6px; font-weight: normal; }' +
+    '.state-indicator { float: right; position: relative; top: -20px; border-radius: 5px; }' +
     tags.map(function(tag) {
       return ('.CLASS { background-color: BG; color: FG }'
         .replace(/CLASS/, tag.name)
